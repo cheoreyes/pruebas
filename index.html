@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototipo · Baterías de evaluación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F4;--surface:#FFFFFF;--ink:#1C2730;--muted:#5B6B73;--line:#D9E0DD;
+  --accent:#1D5C63;--accent-ink:#FFFFFF;--accent-soft:#E1EEEE;
+  --warn:#9A5F06;--warn-soft:#FBEFD9;--ok:#2E7D4F;--ok-soft:#E2F2E8;--bad:#A63A2B;--bad-soft:#F8E4E0;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12181C;--surface:#1A2227;--ink:#E4EAE8;--muted:#93A3A9;--line:#2C373D;
+  --accent:#5FB3B9;--accent-ink:#0E1A1C;--accent-soft:#1E3A3D;
+  --warn:#E0A84A;--warn-soft:#3A2E17;--ok:#6CC08E;--ok-soft:#1B3326;--bad:#E07A6B;--bad-soft:#3A1F1B;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#12181C;--surface:#1A2227;--ink:#E4EAE8;--muted:#93A3A9;--line:#2C373D;
+  --accent:#5FB3B9;--accent-ink:#0E1A1C;--accent-soft:#1E3A3D;
+  --warn:#E0A84A;--warn-soft:#3A2E17;--ok:#6CC08E;--ok-soft:#1B3326;--bad:#E07A6B;--bad-soft:#3A1F1B;color-scheme:dark;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent-soft)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent-soft);border-bottom:1px dashed var(--accent)}
+.bar{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:-.01em;margin-right:auto}
+.brand{color:var(--accent)}
+.badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--accent);color:var(--accent-ink);font-size:11px;line-height:18px;text-align:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px;max-width:52ch}
+.roles{display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;overflow-x:auto;max-width:100%}
+.roles button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;color:var(--muted);font-weight:500}
+.roles button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.ctx{max-width:1180px;margin:0 auto;padding:18px 20px 4px;display:flex;gap:14px;align-items:end;flex-wrap:wrap}
+.ctx h1{font-size:22px;margin:0;letter-spacing:-.015em;font-weight:600}
+.ctx p{margin:2px 0 0;color:var(--muted);max-width:62ch}
+.ctx .who{margin-left:auto;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+main{max-width:1180px;margin:0 auto;padding:16px 20px 60px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.p{grid-column:span 12;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.s6{grid-column:span 6}.s4{grid-column:span 4}.s8{grid-column:span 8}.s5{grid-column:span 5}.s7{grid-column:span 7}
+@media (max-width:860px){.s6,.s4,.s8,.s5,.s7{grid-column:span 12}}
+.p h2{font-size:16px;margin:0 0 4px;font-weight:600}
+.hint{color:var(--muted);margin:0 0 14px;font-size:13.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:12.5px;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500;background:var(--bg);color:var(--muted);white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.acc{background:var(--accent-soft);color:var(--accent)}.chip.bad{background:var(--bad-soft);color:var(--bad)}
+form.f{display:grid;gap:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 140px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+input,select,textarea{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{flex:1 1 180px;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:13px}
+.stat .sub{display:block;font-size:12.5px;color:var(--muted);margin-top:4px}
+.tree{list-style:none;margin:0;padding:0}
+.tree li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.tree li:last-child{border-bottom:0}
+.tree .nm{font-weight:500}.tree .meta{color:var(--muted);font-size:13px;margin-left:auto;text-align:right}
+.indent{display:inline-block;border-left:1px solid var(--line);height:20px}
+.empty{color:var(--muted);padding:10px 0;font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.seg button{border:0;background:none;padding:5px 12px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.log{font-size:13px}.log td{padding:6px 10px}
+.foot{grid-column:span 12;display:flex;justify-content:flex-end}
+.link{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-weight:500;text-decoration:underline;text-underline-offset:2px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;transition:.2s;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--bad);color:#fff}
+/* Candidato */
+.cand{grid-column:span 12;display:flex;justify-content:center}
+.sheet{width:100%;max-width:660px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 32px 28px}
+@media (max-width:560px){.sheet{padding:22px 18px}}
+.sheet .org{color:var(--muted);font-size:13px}
+.sheet h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.2;margin:6px 0 12px;letter-spacing:-.01em}
+.prog{height:4px;background:var(--bg);border-radius:4px;overflow:hidden;margin:4px 0 22px}
+.prog i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.qmeta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
+.q{font-family:var(--serif);font-size:26px;line-height:1.3;margin:10px 0 18px}
+.qimg{margin:0 0 20px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.qimg img{display:block;width:100%;height:auto}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px;cursor:pointer;font-size:16px;display:flex;align-items:center;gap:12px}
+.opt::before{content:"";width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:none}
+.opt[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-checked="true"]::before{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 45%,transparent 50%)}
+.nav{display:flex;justify-content:space-between;margin-top:24px;gap:10px}
+.nav .btn{padding:10px 18px}
+.review{list-style:none;padding:0;margin:0 0 8px}
+.review li{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.review li span:last-child{font-weight:600;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="brand">Recorrido del prototipo<small>Esta barra no forma parte del sistema: sirve para ver la aplicación con cada rol. Los datos se guardan en este navegador.</small></div>
+  <nav class="roles" id="roles" aria-label="Ver como"></nav>
+</div></header>
+<section class="ctx" id="ctx"></section>
+<main id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Catálogo (propiedad del proveedor) ---------- */
+const ESCALAS={SINO:{nombre:'Sí / No',ops:['Sí','No']},FREC:{nombre:'Frecuencia',ops:['Nunca','Algunas veces','Frecuentemente']}};
+const svg=s=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
+const IMG={
+fila:{alt:'Un mostrador de atención con tres clientes esperando en fila',src:svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260"><rect width="600" height="260" fill="#E7EFEE"/><rect x="40" y="150" width="200" height="80" rx="6" fill="#1D5C63"/><circle cx="140" cy="115" r="26" fill="#F2B880"/><rect x="112" y="140" width="56" height="12" rx="6" fill="#1D5C63"/><g fill="#C9D6D4"><circle cx="330" cy="120" r="24"/><rect x="304" y="148" width="52" height="82" rx="20"/><circle cx="420" cy="120" r="24"/><rect x="394" y="148" width="52" height="82" rx="20"/><circle cx="510" cy="120" r="24"/><rect x="484" y="148" width="52" height="82" rx="20"/></g><rect x="300" y="70" width="64" height="26" rx="13" fill="#E06A4F"/><text x="332" y="88" font-family="sans-serif" font-size="14" fill="#fff" text-anchor="middle">!!</text></svg>`)},
+reloj:{alt:'Un reloj marcando la hora pico junto a una fila larga',src:svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260"><rect width="600" height="260" fill="#F4EDE0"/><circle cx="150" cy="130" r="80" fill="#fff" stroke="#1D5C63" stroke-width="8"/><line x1="150" y1="130" x2="150" y2="78" stroke="#1C2730" stroke-width="7" stroke-linecap="round"/><line x1="150" y1="130" x2="192" y2="150" stroke="#E06A4F" stroke-width="6" stroke-linecap="round"/><g fill="#C9B89A">${[0,1,2,3,4,5].map(i=>`<circle cx="${290+i*50}" cy="120" r="16"/><rect x="${274+i*50}" y="140" width="32" height="60" rx="14"/>`).join('')}</g></svg>`)},
+equipo:{alt:'Cuatro personas alrededor de una mesa celebrando un logro',src:svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260"><rect width="600" height="260" fill="#E9ECF4"/><ellipse cx="300" cy="170" rx="180" ry="46" fill="#1D5C63"/><g fill="#F2B880"><circle cx="160" cy="105" r="24"/><circle cx="250" cy="85" r="24"/><circle cx="350" cy="85" r="24"/><circle cx="440" cy="105" r="24"/></g><path d="M300 30l9 19 21 3-15 14 4 21-19-10-19 10 4-21-15-14 21-3z" fill="#E0A84A"/></svg>`)},
+turnos:{alt:'Calendario semanal con turnos: lunes y martes saturados, jueves casi vacío',src:svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260"><rect width="600" height="260" fill="#EEF2F1"/>${['Lun','Mar','Mié','Jue','Vie'].map((d,i)=>`<text x="${80+i*110}" y="36" font-family="sans-serif" font-size="15" fill="#1C2730" text-anchor="middle">${d}</text>`).join('')}${[[5,5],[5,5],[3,2],[1,0],[3,3]].map((c,i)=>[...Array(c[0])].map((_,j)=>`<rect x="${40+i*110}" y="${50+j*38}" width="80" height="30" rx="5" fill="${j<c[1]?'#E06A4F':'#1D5C63'}"/>`).join('')).join('')}</svg>`)}
+};
+const BATERIAS=[
+ {id:'b1',nombre:'Atención al cliente',perfil:'Cajeros, asesores de tienda y call center',tests:[
+  {id:'t1',nombre:'Orientación al servicio',escala:'FREC',preguntas:[
+   {id:'p1',texto:'Cuando un cliente se molesta en el mostrador, mantengo la calma.',img:'fila'},
+   {id:'p2',texto:'Busco resolver el problema del cliente aunque no sea de mi área.'},
+   {id:'p3',texto:'Me cuesta escuchar una queja completa sin interrumpir.'}]},
+  {id:'t2',nombre:'Tolerancia a la presión',escala:'SINO',preguntas:[
+   {id:'p4',texto:'¿Has trabajado en turnos con mucha afluencia de público como la de la imagen?',img:'reloj'},
+   {id:'p5',texto:'¿Te sientes cómodo cumpliendo metas diarias de atención?'}]}]},
+ {id:'b2',nombre:'Liderazgo de equipos',perfil:'Supervisores y jefes de tienda',tests:[
+  {id:'t3',nombre:'Gestión de equipos',escala:'FREC',preguntas:[
+   {id:'p6',texto:'Reconozco públicamente los logros de mi equipo.',img:'equipo'},
+   {id:'p7',texto:'Reparto las tareas según las fortalezas de cada persona.'}]},
+  {id:'t4',nombre:'Toma de decisiones',escala:'SINO',preguntas:[
+   {id:'p8',texto:'¿Has tenido que reasignar a alguien de tu equipo a otra función?'},
+   {id:'p9',texto:'Observa los turnos de la semana. ¿Moverías personas del lunes y martes hacia el jueves?',img:'turnos'}]}]}
+];
+const bat=id=>BATERIAS.find(b=>b.id===id);
+const preguntasDe=b=>bat(b).tests.flatMap(t=>t.preguntas.map(p=>({...p,test:t.nombre,ops:ESCALAS[t.escala].ops})));
+
+/* ---------- Estado ---------- */
+const KEY='prototipo-baterias-v3';
+const uid=p=>p+Math.random().toString(36).slice(2,8);
+const DIA=864e5;
+let S,ui={rol:'proveedor',ses:{},emp:null,uni:null,ana:null,inv:null,bat:'b1',vbat:'all',paso:-1};
+
+function seed(){
+  const now=Date.now();
+  S={empresas:[
+    {id:'e1',nombre:'Grupo Andino Retail',admin:'Laura Méndez',email:'laura.mendez@andino.com'},
+    {id:'e2',nombre:'Clínica Horizonte',admin:'Rafael Ortiz',email:'rortiz@horizonte.org'},
+    {id:'e3',nombre:'Logística Delta',admin:'Mónica Ferrer',email:'mferrer@deltalog.com'}],
+   unidades:[
+    {id:'and',emp:'e1',padre:null,nombre:'Región Andina',tipo:'Región',enc:'Camila Soto'},
+    {id:'bog',emp:'e1',padre:'and',nombre:'Bogotá',tipo:'Sucursal',enc:'Hernán Pardo'},
+    {id:'uio',emp:'e1',padre:'and',nombre:'Quito',tipo:'Sucursal',enc:'Elena Vaca'},
+    {id:'car',emp:'e1',padre:null,nombre:'Región Caribe',tipo:'Región',enc:''},
+    {id:'ccs',emp:'e1',padre:'car',nombre:'Caracas',tipo:'Sucursal',enc:'Ricardo Lugo'},
+    {id:'hz',emp:'e2',padre:null,nombre:'Sede única',tipo:'Sede',enc:'Rafael Ortiz'}],
+   analistas:[
+    {id:'an1',uni:'bog',nombre:'Andrés Rojas',email:'arojas@andino.com'},
+    {id:'an2',uni:'bog',nombre:'Paula Gil',email:'pgil@andino.com'},
+    {id:'an3',uni:'uio',nombre:'Diego Vera',email:'dvera@andino.com'},
+    {id:'an4',uni:'ccs',nombre:'María Pérez',email:'mperez@andino.com'},
+    {id:'an5',uni:'hz',nombre:'Sofía León',email:'sleon@horizonte.org'}],
+   mov:[],inv:[],sol:[],ped:[],notif:[]};
+  const M=(t,e,b,d,h,n,ts)=>S.mov.push({id:uid('m'),ts:ts||now-5*DIA,tipo:t,emp:e,bat:b,desde:d,hacia:h,n});
+  const mes=k=>{const d=new Date();d.setDate(10);d.setMonth(d.getMonth()-k);return d.getTime()};
+  M('compra','e1','b1','prov','g:e1',100,mes(5));M('compra','e1','b2','prov','g:e1',60,mes(4));M('compra','e1','b1','prov','g:e1',60,mes(3));M('compra','e1','b1','prov','g:e1',40,mes(1));
+  M('asignacion','e1','b1','g:e1','u:bog',80);M('asignacion','e1','b1','g:e1','u:uio',40);M('asignacion','e1','b1','g:e1','u:ccs',30);
+  M('asignacion','e1','b2','g:e1','u:bog',20);
+  M('asignacion','e1','b1','u:bog','a:an1',20);M('asignacion','e1','b1','u:bog','a:an2',10);M('asignacion','e1','b2','u:bog','a:an1',5);
+  M('asignacion','e1','b1','u:uio','a:an3',2);M('asignacion','e1','b1','u:ccs','a:an4',12);
+  M('compra','e2','b1','prov','g:e2',30,mes(2));M('compra','e3','b1','prov','g:e3',50,mes(2));M('compra','e3','b2','prov','g:e3',25,mes(0));
+  S.notif.push({id:uid('n'),emp:'e3',bat:'b2',n:25,ts:mes(0),leida:false});M('asignacion','e2','b1','g:e2','u:hz',30);M('asignacion','e2','b1','u:hz','a:an5',10);
+  const I=(a,b,nombre,email,estado,resp)=>{const i={id:uid('i'),ana:a,bat:b,nombre,email,estado,resp:resp||{},ts:now-2*DIA,vence:now+5*DIA};S.inv.push(i);
+    const e=S.analistas.find(x=>x.id===a);const emp=S.unidades.find(u=>u.id===e.uni).emp;
+    M('reserva',emp,b,'a:'+a,'r:'+a,1);if(estado==='completada')M('consumo',emp,b,'r:'+a,'c:'+a,1);return i;};
+  I('an1','b1','Carolina Díaz','cdiaz@correo.com','enviada');
+  I('an1','b1','Jorge Salas','jsalas@correo.com','completada',{p1:'Frecuentemente',p2:'Algunas veces',p3:'Nunca',p4:'Sí',p5:'Sí'});
+  I('an1','b2','Natalia Ríos','nrios@correo.com','en_curso',{p6:'Frecuentemente',p7:'Algunas veces'});
+  I('an3','b1','Luis Torres','ltorres@correo.com','enviada');I('an3','b1','Ana Paredes','aparedes@correo.com','enviada');
+  S.sol.push({id:uid('s'),emp:'e1',ana:'an3',uni:'uio',bat:'b1',n:10,motivo:'Campaña de contratación de diciembre',estado:'pendiente',ts:now-DIA});
+  S.sol.push({id:uid('s'),emp:'e1',ana:'an4',uni:'ccs',bat:'b2',n:15,motivo:'Apertura de dos tiendas nuevas, necesito evaluar supervisores',estado:'escalada',ts:now-DIA});
+}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);return}}catch(e){}seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- Libro de cupos ---------- */
+function bal(pool,b){let s=0;for(const m of S.mov){if(m.bat!==b)continue;if(m.hacia===pool)s+=m.n;if(m.desde===pool)s-=m.n}return s}
+function mov(tipo,emp,b,desde,hacia,n){S.mov.push({id:uid('m'),ts:Date.now(),tipo,emp,bat:b,desde,hacia,n})}
+const sumTipo=(emp,b,t)=>S.mov.filter(m=>m.emp===emp&&m.bat===b&&m.tipo===t).reduce((a,m)=>a+m.n,0);
+
+/* ---------- Utilidades ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fecha=t=>new Date(t).toLocaleDateString('es',{day:'numeric',month:'short'});
+const emp=id=>S.empresas.find(e=>e.id===id);
+const uni=id=>S.unidades.find(u=>u.id===id);
+const ana=id=>S.analistas.find(a=>a.id===id);
+const empDeAna=a=>uni(ana(a).uni).emp;
+function arbol(e){const out=[];const rec=(p,d)=>S.unidades.filter(u=>u.emp===e&&u.padre===p).forEach(u=>{out.push({u,d});rec(u.id,d+1)});rec(null,0);return out}
+function toast(msg,err){const t=$('#toast');t.textContent=msg;t.className='on'+(err?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.className='',2600)}
+const ESTADO_INV={enviada:['Invitación enviada','acc'],en_curso:['Respondiendo','warn'],completada:['Completada','ok'],vencida:['Vencida','bad'],cancelada:['Cancelada','']};
+const ESTADO_SOL={pendiente:['Esperando al encargado','warn'],escalada:['Escalada al administrador','warn'],en_compra:['En compra al proveedor','acc'],aprobada:['Aprobada','ok'],rechazada:['Rechazada','bad']};
+const chip=([t,c])=>`<span class="chip ${c}">${esc(t)}</span>`;
+const batOpts=sel=>BATERIAS.map(b=>`<option value="${b.id}" ${b.id===sel?'selected':''}>${esc(b.nombre)}</option>`).join('');
+const segBat=()=>`<div class="seg" role="group" aria-label="Batería">${BATERIAS.map(b=>`<button data-act="bat" data-id="${b.id}" aria-pressed="${ui.bat===b.id}">${esc(b.nombre)}</button>`).join('')}</div>`;
+function poolNombre(p){const [k,id]=p.split(':');if(k==='prov')return'Proveedor';if(k==='g')return'Bolsa de la empresa';if(k==='u')return uni(id)?.nombre||id;if(k==='a')return ana(id)?.nombre||id;if(k==='r')return'Reservado · '+(ana(id)?.nombre||id);if(k==='c')return'Consumido · '+(ana(id)?.nombre||id);return p}
+const TIPO_MOV={compra:'Compra',asignacion:'Reparto',reserva:'Reserva por invitación',consumo:'Consumo',liberacion:'Liberación'};
+
+/* ---------- Roles ---------- */
+const ROLES=[['proveedor','Super Admin'],['admin','Administrador global'],['encargado','Sucursal'],['analista','Analista'],['candidato','Candidato']];
+function render(){
+  const sinLeer=S.notif.filter(n=>!n.leida).length;
+  $('#roles').innerHTML=ROLES.map(([k,t])=>`<button data-act="rol" data-id="${k}" aria-pressed="${ui.rol===k}">${t}${k==='proveedor'&&sinLeer?`<span class="badge" aria-label="${sinLeer} sin leer">${sinLeer}</span>`:''}</button>`).join('');
+  if(ui.rol!=='proveedor'&&!ui.ses[ui.rol])return vLogin();
+  ({proveedor:vProveedor,admin:vAdmin,encargado:vEncargado,analista:vAnalista,candidato:vCandidato})[ui.rol]();
+}
+const sesion=(quien,donde)=>`<span>Sesión de <b>${esc(quien)}</b></span><span>${esc(donde)}</span><span><button class="link" data-act="salir">Cerrar sesión</button></span>`;
+function vLogin(){
+  const r=ui.rol;let titulo,items;
+  if(r==='admin'){titulo='administrador global';items=S.empresas.map(e=>({id:e.id,t:e.admin,s:e.nombre+' · '+e.email}))}
+  else if(r==='encargado'){titulo='sucursal';items=S.unidades.filter(u=>u.enc).map(u=>({id:u.id,t:u.enc,s:emp(u.emp).nombre+' · '+u.nombre}))}
+  else if(r==='analista'){titulo='analista';items=S.analistas.map(a=>({id:a.id,t:a.nombre,s:emp(uni(a.uni).emp).nombre+' · '+uni(a.uni).nombre}))}
+  else{titulo='candidato';items=S.inv.filter(i=>i.estado==='enviada'||i.estado==='en_curso').map(i=>({id:i.id,t:i.nombre,s:emp(empDeAna(i.ana)).nombre+' · '+bat(i.bat).nombre}))}
+  ctx('Entrar como '+titulo,r==='candidato'?'El candidato entra con el enlace que recibe por correo. Elige qué enlace abrir.':'Simulación del inicio de sesión. Una vez dentro, solo verás la organización de esa cuenta.');
+  $('#main').innerHTML=`<div class="cand"><div class="sheet"><h2>${r==='candidato'?'Abrir enlace':'Iniciar sesión'}</h2><p class="hint">Cuentas de ejemplo</p>${items.length?`<ul class="tree">${items.map(x=>`<li><div><div class="nm">${esc(x.t)}</div><small style="color:var(--muted)">${esc(x.s)}</small></div><span class="meta"><button class="btn sm pri" data-act="entrar" data-id="${x.id}">${r==='candidato'?'Abrir':'Entrar'}</button></span></li>`).join('')}</ul>`:'<p class="empty">No hay cuentas disponibles para este rol.</p>'}</div></div>`;
+}
+function notifPanel(){
+  const ns=S.notif.slice().reverse().slice(0,8);const nuevas=S.notif.filter(n=>!n.leida).length;
+  return `<section class="p s4"><h2>Notificaciones</h2><p class="hint">${nuevas?`${nuevas} ampliación${nuevas>1?'es':''} sin leer.`:'Estás al día.'}</p>
+  ${ns.length?`<ul class="tree">${ns.map(n=>`<li>${n.leida?'':'<span class="dot" aria-label="Sin leer"></span>'}<div><div class="nm">${esc(emp(n.emp).nombre)} amplió ${n.n} cupos</div><small style="color:var(--muted)">${esc(bat(n.bat).nombre)} · ${fecha(n.ts)}</small></div></li>`).join('')}</ul>`:'<p class="empty">Aquí verás cuando un administrador global amplíe sus cupos.</p>'}
+  ${nuevas?'<div style="margin-top:10px"><button class="btn sm" data-act="leer">Marcar como leídas</button></div>':''}</section>`;
+}
+const COL=['#2F7F87','#D89B3A','#7A5BA8','#C2563E','#3E7CB1','#6C8F3D'];
+function ventasChart(){
+  const meses=[...Array(6)].map((_,k)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-5+k);return{y:d.getFullYear(),m:d.getMonth(),lbl:d.toLocaleDateString('es',{month:'short',year:'2-digit'})}});
+  const vb=ui.vbat;
+  const data=meses.map(M=>S.empresas.map(e=>S.mov.filter(x=>{const d=new Date(x.ts);return x.tipo==='compra'&&x.emp===e.id&&(vb==='all'||x.bat===vb)&&d.getFullYear()===M.y&&d.getMonth()===M.m}).reduce((a,x)=>a+x.n,0)));
+  const tot=data.map(r=>r.reduce((a,b)=>a+b,0));const max=Math.max(10,...tot)*1.12;
+  const W=720,H=260,pl=40,pb=28,pt=18,cw=(W-pl-10)/6,bw=Math.min(56,cw*.55);
+  const y=v=>pt+(H-pt-pb)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cupos vendidos por mes y cliente" style="width:100%;height:auto;display:block">`;
+  [0,.5,1].map(f=>Math.round(max/1.12*f)).forEach(t=>s+=`<line x1="${pl}" x2="${W-10}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${pl-8}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${t}</text>`);
+  data.forEach((r,k)=>{const x=pl+cw*k+(cw-bw)/2;let acc=0;r.forEach((v,j)=>{if(!v)return;const y0=y(acc),y1=y(acc+v);s+=`<rect x="${x}" y="${y1}" width="${bw}" height="${y0-y1}" fill="${COL[j%COL.length]}"><title>${esc(S.empresas[j].nombre)}: ${v} cupos</title></rect>`;acc+=v});
+    if(tot[k])s+=`<text x="${x+bw/2}" y="${y(tot[k])-6}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${tot[k]}</text>`;
+    s+=`<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="var(--muted)">${meses[k].lbl}</text>`});
+  return s+'</svg>'+`<div class="legend">${S.empresas.map((e,j)=>`<span><i style="background:${COL[j%COL.length]}"></i>${esc(e.nombre)}</span>`).join('')}</div>`;
+}
+function ctx(titulo,desc,selector){$('#ctx').innerHTML=`<div><h1>${titulo}</h1><p>${desc}</p></div>${selector?`<div class="who">${selector}</div>`:''}`}
+
+/* ---------- Proveedor ---------- */
+function vProveedor(){
+  ctx('Super Admin','Registras empresas clientes, les vendes cupos y sigues las ventas de cada mes.');
+  $('#main').innerHTML=`
+  <section class="p s8"><h2>Ventas mensuales</h2><p class="hint">Cupos vendidos por mes y por cliente, incluidas las compras adicionales que hacen los administradores.</p>
+   <div class="seg" role="group" aria-label="Batería"><button data-act="vbat" data-id="all" aria-pressed="${ui.vbat==='all'}">Todas</button>${BATERIAS.map(b=>`<button data-act="vbat" data-id="${b.id}" aria-pressed="${ui.vbat===b.id}">${esc(b.nombre)}</button>`).join('')}</div>
+   ${ventasChart()}</section>
+  ${notifPanel()}
+  <section class="p"><h2>Empresas clientes</h2><p class="hint">Cupos vendidos y consumidos por batería.</p>
+   <div class="tw"><table><thead><tr><th>Empresa</th><th>Administrador</th>${BATERIAS.map(b=>`<th class="n">${esc(b.nombre)}<br>vendidos / consumidos</th>`).join('')}</tr></thead><tbody>
+   ${S.empresas.map(e=>`<tr><td><b>${esc(e.nombre)}</b></td><td>${esc(e.admin)}<br><small style="color:var(--muted)">${esc(e.email)}</small></td>${BATERIAS.map(b=>`<td class="n">${sumTipo(e.id,b.id,'compra')} / ${sumTipo(e.id,b.id,'consumo')}</td>`).join('')}</tr>`).join('')}
+   </tbody></table></div></section>
+  <section class="p s6"><h2>Registrar empresa</h2><p class="hint">Se crea la empresa y su administrador. Él arma la estructura.</p>
+   <form class="f" data-form="nuevaEmpresa"><label>Nombre de la empresa<input name="nombre" required></label>
+   <div class="row"><label>Administrador<input name="admin" required></label><label>Correo<input name="email" type="email" required></label></div>
+   <div><button class="btn pri">Registrar empresa</button></div></form></section>
+  <section class="p s6"><h2>Asignar cupos iniciales</h2><p class="hint">Los cupos del contrato entran a la bolsa de la empresa. Después, el administrador global los amplía cuando lo necesite.</p>
+   <form class="f" data-form="vender"><label>Empresa<select name="emp">${S.empresas.map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></label>
+   <div class="row"><label>Batería<select name="bat">${batOpts()}</select></label><label>Cantidad<input name="n" type="number" min="1" value="50" required></label></div>
+   <div><button class="btn pri">Asignar cupos</button></div></form></section>
+  <section class="p"><h2>Catálogo de baterías</h2><p class="hint">Cada test usa una escala de respuesta. Las preguntas pueden llevar imagen.</p>
+   <div class="tw"><table><thead><tr><th>Batería</th><th>Perfil</th><th>Tests</th><th class="n">Preguntas</th><th class="n">Con imagen</th></tr></thead><tbody>
+   ${BATERIAS.map(b=>{const q=preguntasDe(b.id);return`<tr><td><b>${esc(b.nombre)}</b></td><td>${esc(b.perfil)}</td><td>${b.tests.map(t=>`${esc(t.nombre)} <span class="chip">${ESCALAS[t.escala].nombre}</span>`).join('<br>')}</td><td class="n">${q.length}</td><td class="n">${q.filter(x=>x.img).length}</td></tr>`}).join('')}
+   </tbody></table></div></section>
+  <div class="foot"><button class="link" data-act="reset">Restablecer datos de ejemplo</button></div>`;
+}
+
+/* ---------- Administrador ---------- */
+function vAdmin(){
+  const e=emp(ui.emp);
+  ctx(esc(e.nombre),'Armas la estructura, nombras encargados, repartes los cupos y compras más cuando hace falta.',sesion(e.admin,'Administrador global'));
+  const us=arbol(e.id);
+  const tipos=[...new Set(S.unidades.filter(u=>u.emp===e.id).map(u=>u.tipo))];
+  const escal=S.sol.filter(s=>s.emp===e.id&&s.estado==='escalada');
+  const b=ui.bat;
+  const movs=S.mov.filter(m=>m.emp===e.id).slice(-10).reverse();
+  $('#main').innerHTML=`
+  <section class="p"><h2>Bolsa de la empresa</h2><p class="hint">Cupos comprados que aún no has repartido a ninguna unidad.</p>
+   <div class="stats">${BATERIAS.map(x=>`<div class="stat"><span>${esc(x.nombre)}</span><b>${bal('g:'+e.id,x.id)}</b><span class="sub">${sumTipo(e.id,x.id,'compra')} comprados · ${sumTipo(e.id,x.id,'consumo')} consumidos</span></div>`).join('')}</div></section>
+  ${escal.length?`<section class="p"><h2>Solicitudes escaladas</h2><p class="hint">El encargado no tenía cupos suficientes. Cúbrelas con la bolsa o compra los cupos que faltan.</p>
+   <div class="tw"><table><thead><tr><th>Analista</th><th>Unidad</th><th>Batería</th><th class="n">Cupos</th><th>Motivo</th><th></th></tr></thead><tbody>
+   ${escal.map(s=>{const ok=bal('g:'+e.id,s.bat)>=s.n;return`<tr><td>${esc(ana(s.ana).nombre)}</td><td>${esc(uni(s.uni).nombre)}</td><td>${esc(bat(s.bat).nombre)}</td><td class="n">${s.n}</td><td>${esc(s.motivo)}</td><td><div class="acts"><button class="btn sm pri" data-act="cubrir" data-id="${s.id}" ${ok?'':'disabled title="La bolsa no tiene cupos suficientes"'}>Cubrir con la bolsa</button><button class="btn sm" data-act="ampliarSol" data-id="${s.id}">Comprar y entregar</button><button class="btn sm" data-act="rechSol" data-id="${s.id}">Rechazar</button></div></td></tr>`}).join('')}
+   </tbody></table></div></section>`:''}
+  <section class="p s7"><h2>Estructura organizativa</h2><p class="hint">Tú decides cómo se llama cada nivel. Si no hay sucursales, basta una sola unidad.</p>
+   ${us.length?`<ul class="tree">${us.map(({u,d})=>`<li>${'<span class="indent" style="margin-left:'+(d*14)+'px"></span>'.repeat(d?1:0)}<span class="chip">${esc(u.tipo)}</span><span class="nm">${esc(u.nombre)}</span><span class="meta">${u.enc?'Encargado: '+esc(u.enc):'<span class="chip warn">Sin encargado</span>'}<br>${S.analistas.filter(a=>a.uni===u.id).length} analistas</span></li>`).join('')}</ul>`:'<p class="empty">Aún no hay unidades. Crea la primera para empezar a repartir cupos.</p>'}
+  </section>
+  <section class="p s5"><h2>Nueva unidad</h2>
+   <form class="f" data-form="nuevaUnidad"><div class="row"><label>Nombre<input name="nombre" required placeholder="Medellín"></label><label>Tipo de unidad<input name="tipo" list="tipos" required placeholder="Sucursal"><datalist id="tipos">${tipos.map(t=>`<option value="${esc(t)}">`).join('')}</datalist></label></div>
+   <label>Depende de<select name="padre"><option value="">Nivel superior</option>${us.map(({u,d})=>`<option value="${u.id}">${'— '.repeat(d)}${esc(u.nombre)}</option>`).join('')}</select></label>
+   <label>Encargado (opcional)<input name="enc"></label><div><button class="btn pri">Crear unidad</button></div></form>
+   <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+   <h2>Asignar encargado</h2>
+   <form class="f" data-form="asignarEnc"><div class="row"><label>Unidad<select name="uni">${us.map(({u})=>`<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></label><label>Nombre<input name="enc" required></label></div><div><button class="btn">Asignar encargado</button></div></form>
+  </section>
+  <section class="p s8"><h2>Cupos por unidad</h2><p class="hint">Cómo se reparte cada batería en la organización.</p>${segBat()}
+   <div class="tw"><table><thead><tr><th>Unidad</th><th class="n">Sin repartir en la unidad</th><th class="n">En analistas</th><th class="n">Reservados</th><th class="n">Consumidos</th></tr></thead><tbody>
+   ${us.map(({u,d})=>{const as=S.analistas.filter(a=>a.uni===u.id);const sum=p=>as.reduce((t,a)=>t+bal(p+a.id,b),0);return`<tr><td style="padding-left:${10+d*16}px">${esc(u.nombre)}</td><td class="n">${bal('u:'+u.id,b)}</td><td class="n">${sum('a:')}</td><td class="n">${sum('r:')}</td><td class="n">${sum('c:')}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Sin unidades.</td></tr>'}
+   </tbody></table></div></section>
+  <section class="p s4"><h2>Repartir cupos</h2><p class="hint">De la bolsa de la empresa a una unidad.</p>
+   <form class="f" data-form="repartirUni"><label>Unidad<select name="uni">${us.map(({u,d})=>`<option value="${u.id}">${'— '.repeat(d)}${esc(u.nombre)}</option>`).join('')}</select></label>
+   <div class="row"><label>Batería<select name="bat">${batOpts(b)}</select></label><label>Cantidad<input name="n" type="number" min="1" value="10" required></label></div><div><button class="btn pri" ${us.length?'':'disabled'}>Repartir cupos</button></div></form>
+   <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+   <h2>Comprar cupos adicionales</h2><p class="hint">Se suman de inmediato a la bolsa de la empresa.</p>
+   <form class="f" data-form="ampliar"><div class="row"><label>Batería<select name="bat">${batOpts(b)}</select></label><label>Cantidad<input name="n" type="number" min="1" value="50" required></label></div><div><button class="btn">Comprar cupos</button></div></form>
+  </section>
+  <section class="p"><h2>Movimientos recientes</h2><p class="hint">Cada cupo deja rastro: de dónde sale y a dónde va.</p>
+   <div class="tw"><table class="log"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Batería</th><th>Desde</th><th>Hacia</th><th class="n">Cupos</th></tr></thead><tbody>
+   ${movs.map(m=>`<tr><td>${fecha(m.ts)}</td><td>${TIPO_MOV[m.tipo]}</td><td>${esc(bat(m.bat).nombre)}</td><td>${esc(poolNombre(m.desde))}</td><td>${esc(poolNombre(m.hacia))}</td><td class="n">${m.n}</td></tr>`).join('')}
+   </tbody></table></div></section>`;
+}
+
+/* ---------- Encargado ---------- */
+function vEncargado(){
+  const u=uni(ui.uni);const e=emp(u.emp);
+  ctx(`${esc(u.tipo)} ${esc(u.nombre)}`,'Gestionas los analistas de tu unidad y les repartes cupos.',sesion(u.enc,'Sucursal · '+e.nombre));
+  const as=S.analistas.filter(a=>a.uni===u.id);
+  const sols=S.sol.filter(s=>s.uni===u.id);
+  const pend=sols.filter(s=>s.estado==='pendiente');
+  $('#main').innerHTML=`
+  <section class="p"><h2>Cupos de la unidad</h2><p class="hint">Cupos que te asignó el administrador y aún no repartes a tus analistas.</p>
+   <div class="stats">${BATERIAS.map(x=>`<div class="stat"><span>${esc(x.nombre)}</span><b>${bal('u:'+u.id,x.id)}</b><span class="sub">${as.reduce((t,a)=>t+bal('a:'+a.id,x.id),0)} en manos de analistas</span></div>`).join('')}</div></section>
+  ${pend.length?`<section class="p"><h2>Solicitudes de tus analistas</h2><p class="hint">Apruébalas con los cupos de la unidad. Si no te alcanza, escálalas al administrador.</p>
+   <div class="tw"><table><thead><tr><th>Analista</th><th>Batería</th><th class="n">Cupos</th><th>Motivo</th><th></th></tr></thead><tbody>
+   ${pend.map(s=>{const ok=bal('u:'+u.id,s.bat)>=s.n;return`<tr><td>${esc(ana(s.ana).nombre)}</td><td>${esc(bat(s.bat).nombre)}</td><td class="n">${s.n}</td><td>${esc(s.motivo)}</td><td><div class="acts"><button class="btn sm pri" data-act="aprobar" data-id="${s.id}" ${ok?'':'disabled title="La unidad no tiene cupos suficientes"'}>Aprobar</button><button class="btn sm" data-act="escalar" data-id="${s.id}">Escalar al administrador</button><button class="btn sm" data-act="rechSol" data-id="${s.id}">Rechazar</button></div></td></tr>`}).join('')}
+   </tbody></table></div></section>`:''}
+  <section class="p s8"><h2>Analistas</h2><p class="hint">Disponibles · reservados en invitaciones · consumidos.</p>${segBat()}
+   <div class="tw"><table><thead><tr><th>Analista</th><th class="n">Disponibles</th><th class="n">Reservados</th><th class="n">Consumidos</th><th class="n">Invitaciones</th></tr></thead><tbody>
+   ${as.map(a=>`<tr><td><b>${esc(a.nombre)}</b><br><small style="color:var(--muted)">${esc(a.email)}</small></td><td class="n">${bal('a:'+a.id,ui.bat)}</td><td class="n">${bal('r:'+a.id,ui.bat)}</td><td class="n">${bal('c:'+a.id,ui.bat)}</td><td class="n">${S.inv.filter(i=>i.ana===a.id&&i.bat===ui.bat).length}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Aún no hay analistas en esta unidad.</td></tr>'}
+   </tbody></table></div></section>
+  <section class="p s4"><h2>Repartir a un analista</h2>
+   <form class="f" data-form="repartirAna"><label>Analista<select name="ana">${as.map(a=>`<option value="${a.id}">${esc(a.nombre)}</option>`).join('')}</select></label>
+   <div class="row"><label>Batería<select name="bat">${batOpts(ui.bat)}</select></label><label>Cantidad<input name="n" type="number" min="1" value="5" required></label></div><div><button class="btn pri" ${as.length?'':'disabled'}>Repartir cupos</button></div></form>
+   <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+   <h2>Agregar analista</h2>
+   <form class="f" data-form="nuevoAna"><label>Nombre<input name="nombre" required></label><label>Correo<input name="email" type="email" required></label><div><button class="btn">Agregar analista</button></div></form>
+  </section>`;
+}
+
+/* ---------- Analista ---------- */
+function vAnalista(){
+  const a=ana(ui.ana);const u=uni(a.uni);
+  ctx('Mis candidatos','Invitas candidatos y les das seguimiento. Cada invitación reserva un cupo; se consume cuando el candidato termina.',sesion(a.nombre,'Analista · '+emp(u.emp).nombre+' · '+u.nombre));
+  const invs=S.inv.filter(i=>i.ana===a.id).slice().reverse();
+  const sols=S.sol.filter(s=>s.ana===a.id).slice().reverse();
+  const disp=b=>bal('a:'+a.id,b);
+  $('#main').innerHTML=`
+  <section class="p"><h2>Mis cupos</h2>
+   <div class="stats">${BATERIAS.map(x=>`<div class="stat"><span>${esc(x.nombre)}</span><b>${disp(x.id)}</b><span class="sub">disponibles · ${bal('r:'+a.id,x.id)} reservados · ${bal('c:'+a.id,x.id)} consumidos</span></div>`).join('')}</div></section>
+  <section class="p s5"><h2>Invitar candidato</h2><p class="hint">Recibirá un enlace para responder la batería.</p>
+   <form class="f" data-form="invitar"><label>Nombre del candidato<input name="nombre" required></label><label>Correo<input name="email" type="email" required></label>
+   <label>Batería<select name="bat">${BATERIAS.map(x=>`<option value="${x.id}" ${disp(x.id)?'':'disabled'}>${esc(x.nombre)} (${disp(x.id)} disponibles)</option>`).join('')}</select></label>
+   <div><button class="btn pri" ${BATERIAS.some(x=>disp(x.id))?'':'disabled'}>Enviar invitación</button></div>
+   ${BATERIAS.some(x=>!disp(x.id))?'<p class="hint" style="margin:0">Si te faltan cupos para una batería, pídelos abajo.</p>':''}</form></section>
+  <section class="p s7"><h2>Pedir más cupos</h2><p class="hint">La solicitud va a tu encargado; si a él no le alcanza, sube al administrador.</p>
+   <form class="f" data-form="solicitar"><div class="row"><label>Batería<select name="bat">${batOpts()}</select></label><label>Cantidad<input name="n" type="number" min="1" value="10" required></label></div>
+   <label>Motivo<input name="motivo" required placeholder="Meta de candidatos del mes"></label><div><button class="btn">Pedir cupos</button></div></form>
+   ${sols.length?`<div class="tw" style="margin-top:14px"><table><thead><tr><th>Fecha</th><th>Batería</th><th class="n">Cupos</th><th>Estado</th></tr></thead><tbody>${sols.map(s=>`<tr><td>${fecha(s.ts)}</td><td>${esc(bat(s.bat).nombre)}</td><td class="n">${s.n}</td><td>${chip(ESTADO_SOL[s.estado])}</td></tr>`).join('')}</tbody></table></div>`:''}
+  </section>
+  <section class="p"><h2>Mis invitaciones</h2>
+   <div class="tw"><table><thead><tr><th>Candidato</th><th>Batería</th><th>Estado</th><th class="n">Avance</th><th>Vence</th><th></th></tr></thead><tbody>
+   ${invs.map(i=>{const tot=preguntasDe(i.bat).length,r=Object.keys(i.resp).length,act=i.estado==='enviada'||i.estado==='en_curso';return`<tr><td><b>${esc(i.nombre)}</b><br><small style="color:var(--muted)">${esc(i.email)}</small></td><td>${esc(bat(i.bat).nombre)}</td><td>${chip(ESTADO_INV[i.estado])}</td><td class="n">${r}/${tot}</td><td>${act?fecha(i.vence):'—'}</td><td><div class="acts">${act?`<button class="btn sm" data-act="verCand" data-id="${i.id}">Abrir como candidato</button><button class="btn sm" data-act="cancelar" data-id="${i.id}">Cancelar</button><button class="btn sm" data-act="vencer" data-id="${i.id}">Simular vencimiento</button>`:''}</div></td></tr>`}).join('')||'<tr><td colspan="6" class="empty">Aún no has invitado a nadie.</td></tr>'}
+   </tbody></table></div></section>`;
+}
+
+/* ---------- Candidato ---------- */
+function vCandidato(){
+  const i=S.inv.find(x=>x.id===ui.inv);
+  ctx('Tu evaluación','Así ve el candidato la batería al abrir el enlace de su invitación.',sesion(i.nombre,'Candidato'));
+  const B=bat(i.bat),Q=preguntasDe(i.bat),e=emp(empDeAna(i.ana));
+  let body;
+  if(i.estado==='completada') body=`<p class="org">${esc(e.nombre)}</p><h2>Gracias, ${esc(i.nombre.split(' ')[0])}</h2><p>Recibimos tus respuestas de la batería ${esc(B.nombre)}. El analista se pondrá en contacto contigo.</p>`;
+  else if(i.estado==='cancelada'||i.estado==='vencida') body=`<p class="org">${esc(e.nombre)}</p><h2>Esta invitación ya no está disponible</h2><p>Si crees que es un error, escribe al analista que te invitó.</p>`;
+  else if(ui.paso<0) body=`<p class="org">${esc(e.nombre)} te invita</p><h2>Hola, ${esc(i.nombre.split(' ')[0])}</h2>
+   <p>Vas a responder ${Q.length} preguntas de la batería <b>${esc(B.nombre)}</b>. No hay respuestas buenas ni malas: elige la que mejor te describa.</p>
+   <ul class="review">${B.tests.map(t=>`<li><span>${esc(t.nombre)}</span><span>${t.preguntas.length} preguntas</span></li>`).join('')}</ul>
+   <p class="hint">Te toma unos ${Math.max(3,Math.round(Q.length*0.7))} minutos. Puedes dejarlo y continuar después con el mismo enlace.</p>
+   <div class="nav"><span></span><button class="btn pri" data-act="empezar">${Object.keys(i.resp).length?'Continuar':'Empezar'}</button></div>`;
+  else if(ui.paso<Q.length){const q=Q[ui.paso],sel=i.resp[q.id];
+   body=`<div class="qmeta"><span>${esc(q.test)}</span><span>${ui.paso+1} de ${Q.length}</span></div><div class="prog"><i style="width:${(ui.paso/Q.length)*100}%"></i></div>
+   ${q.img?`<figure class="qimg"><img src="${IMG[q.img].src}" alt="${esc(IMG[q.img].alt)}"></figure>`:''}
+   <p class="q" id="qt">${esc(q.texto)}</p>
+   <div class="opts" role="radiogroup" aria-labelledby="qt">${q.ops.map(o=>`<button class="opt" role="radio" aria-checked="${sel===o}" data-act="resp" data-id="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+   <div class="nav"><button class="btn" data-act="atras">Anterior</button><button class="btn pri" data-act="sig" ${sel?'':'disabled'}>${ui.paso===Q.length-1?'Revisar respuestas':'Siguiente'}</button></div>`}
+  else body=`<div class="prog"><i style="width:100%"></i></div><h2>Revisa tus respuestas</h2>
+   <ul class="review">${Q.map((q,k)=>`<li><span><button class="link" data-act="ir" data-id="${k}">${esc(q.texto)}</button></span><span>${esc(i.resp[q.id]||'Sin responder')}</span></li>`).join('')}</ul>
+   <div class="nav"><button class="btn" data-act="atras">Anterior</button><button class="btn pri" data-act="enviar" ${Q.every(q=>i.resp[q.id])?'':'disabled'}>Enviar respuestas</button></div>`;
+  $('#main').innerHTML=`<div class="cand"><div class="sheet">${body}</div></div>`;
+}
+
+/* ---------- Acciones ---------- */
+const find=(arr,id)=>S[arr].find(x=>x.id===id);
+const notificar=(e,b,n)=>S.notif.push({id:uid('n'),emp:e,bat:b,n,ts:Date.now(),leida:false});
+const A={
+ rol:d=>{ui.rol=d.id;if(d.id==='candidato')ui.paso=-1},
+ bat:d=>{ui.bat=d.id},
+ reset:()=>{seed();ui.ses={};toast('Datos de ejemplo restablecidos')},
+ entrar:d=>{const r=ui.rol;if(r==='admin')ui.emp=d.id;if(r==='encargado')ui.uni=d.id;if(r==='analista')ui.ana=d.id;if(r==='candidato'){ui.inv=d.id;ui.paso=-1}ui.ses[r]=true},
+ salir:()=>{ui.ses[ui.rol]=false},
+ vbat:d=>{ui.vbat=d.id},
+ leer:()=>{S.notif.forEach(n=>n.leida=true)},
+ confPed:d=>{const p=find('ped',d.id);mov('compra',p.emp,p.bat,'prov','g:'+p.emp,p.n);
+   if(p.sol){const s=find('sol',p.sol);mov('asignacion',p.emp,p.bat,'g:'+p.emp,'u:'+s.uni,s.n);mov('asignacion',p.emp,p.bat,'u:'+s.uni,'a:'+s.ana,s.n);s.estado='aprobada'}
+   p.estado='confirmado';toast(`Venta confirmada: ${p.n} cupos a ${emp(p.emp).nombre}`)},
+ rechPed:d=>{const p=find('ped',d.id);p.estado='rechazado';if(p.sol)find('sol',p.sol).estado='rechazada';toast('Pedido rechazado')},
+ cubrir:d=>{const s=find('sol',d.id);if(bal('g:'+s.emp,s.bat)<s.n)return toast('La bolsa no tiene cupos suficientes',1);
+   mov('asignacion',s.emp,s.bat,'g:'+s.emp,'u:'+s.uni,s.n);mov('asignacion',s.emp,s.bat,'u:'+s.uni,'a:'+s.ana,s.n);s.estado='aprobada';toast(`${s.n} cupos entregados a ${ana(s.ana).nombre}`)},
+ ampliarSol:d=>{const s=find('sol',d.id);mov('compra',s.emp,s.bat,'prov','g:'+s.emp,s.n);notificar(s.emp,s.bat,s.n);mov('asignacion',s.emp,s.bat,'g:'+s.emp,'u:'+s.uni,s.n);mov('asignacion',s.emp,s.bat,'u:'+s.uni,'a:'+s.ana,s.n);s.estado='aprobada';toast(`Compraste ${s.n} cupos y se entregaron a ${ana(s.ana).nombre}`)},
+ rechSol:d=>{find('sol',d.id).estado='rechazada';toast('Solicitud rechazada')},
+ aprobar:d=>{const s=find('sol',d.id);if(bal('u:'+s.uni,s.bat)<s.n)return toast('La unidad no tiene cupos suficientes',1);
+   mov('asignacion',s.emp,s.bat,'u:'+s.uni,'a:'+s.ana,s.n);s.estado='aprobada';toast('Solicitud aprobada')},
+ escalar:d=>{find('sol',d.id).estado='escalada';toast('Solicitud escalada al administrador')},
+ verCand:d=>{ui.rol='candidato';ui.inv=d.id;ui.paso=-1;ui.ses.candidato=true},
+ cancelar:d=>{const i=find('inv',d.id);mov('liberacion',empDeAna(i.ana),i.bat,'r:'+i.ana,'a:'+i.ana,1);i.estado='cancelada';toast('Invitación cancelada. El cupo volvió a tu saldo')},
+ vencer:d=>{const i=find('inv',d.id);mov('liberacion',empDeAna(i.ana),i.bat,'r:'+i.ana,'a:'+i.ana,1);i.estado='vencida';toast('Invitación vencida. El cupo volvió a tu saldo')},
+ empezar:()=>{const i=find('inv',ui.inv);if(i.estado==='enviada')i.estado='en_curso';const Q=preguntasDe(i.bat);const k=Q.findIndex(q=>!i.resp[q.id]);ui.paso=k<0?Q.length:k},
+ resp:d=>{const i=find('inv',ui.inv);i.resp[preguntasDe(i.bat)[ui.paso].id]=d.id},
+ sig:()=>{ui.paso++},atras:()=>{ui.paso--},ir:d=>{ui.paso=+d.id},
+ enviar:()=>{const i=find('inv',ui.inv);mov('consumo',empDeAna(i.ana),i.bat,'r:'+i.ana,'c:'+i.ana,1);i.estado='completada';i.fin=Date.now();toast('Respuestas enviadas')}
+};
+const F={
+ nuevaEmpresa:v=>{const id=uid('e');S.empresas.push({id,nombre:v.nombre,admin:v.admin,email:v.email});toast(`${v.nombre} registrada`)},
+ vender:v=>{mov('compra',v.emp,v.bat,'prov','g:'+v.emp,+v.n);toast(`${v.n} cupos asignados a ${emp(v.emp).nombre}`)},
+ nuevaUnidad:v=>{S.unidades.push({id:uid('u'),emp:ui.emp,padre:v.padre||null,nombre:v.nombre,tipo:v.tipo,enc:v.enc||''});toast(`${v.tipo} ${v.nombre} creada`)},
+ asignarEnc:v=>{uni(v.uni).enc=v.enc;toast(`${v.enc} es encargado de ${uni(v.uni).nombre}`)},
+ repartirUni:v=>{if(bal('g:'+ui.emp,v.bat)<+v.n)return toast(`La bolsa solo tiene ${bal('g:'+ui.emp,v.bat)} cupos de esa batería`,1);mov('asignacion',ui.emp,v.bat,'g:'+ui.emp,'u:'+v.uni,+v.n);toast(`${v.n} cupos repartidos a ${uni(v.uni).nombre}`)},
+ ampliar:v=>{mov('compra',ui.emp,v.bat,'prov','g:'+ui.emp,+v.n);notificar(ui.emp,v.bat,+v.n);toast(`${v.n} cupos comprados. Ya están en la bolsa`)},
+ repartirAna:v=>{const u=ui.uni;if(bal('u:'+u,v.bat)<+v.n)return toast(`La unidad solo tiene ${bal('u:'+u,v.bat)} cupos de esa batería`,1);mov('asignacion',uni(u).emp,v.bat,'u:'+u,'a:'+v.ana,+v.n);toast(`${v.n} cupos para ${ana(v.ana).nombre}`)},
+ nuevoAna:v=>{S.analistas.push({id:uid('a'),uni:ui.uni,nombre:v.nombre,email:v.email});toast(`${v.nombre} agregado a la unidad`)},
+ invitar:v=>{const a=ana(ui.ana);if(bal('a:'+a.id,v.bat)<1)return toast('No tienes cupos de esa batería',1);
+   mov('reserva',empDeAna(a.id),v.bat,'a:'+a.id,'r:'+a.id,1);S.inv.push({id:uid('i'),ana:a.id,bat:v.bat,nombre:v.nombre,email:v.email,estado:'enviada',resp:{},ts:Date.now(),vence:Date.now()+7*DIA});toast(`Invitación enviada a ${v.nombre}`)},
+ solicitar:v=>{const a=ana(ui.ana);S.sol.push({id:uid('s'),emp:empDeAna(a.id),ana:a.id,uni:a.uni,bat:v.bat,n:+v.n,motivo:v.motivo,estado:'pendiente',ts:Date.now()});toast('Solicitud enviada a tu encargado')}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;A[b.dataset.act]?.(b.dataset);save();render();if(b.dataset.act==='rol'||b.dataset.act==='verCand')window.scrollTo(0,0)});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();F[f.dataset.form](Object.fromEntries(new FormData(f)));save();render()});
+document.addEventListener('change',e=>{const k=e.target.dataset.chg;if(!k)return;ui[k]=e.target.value;if(k==='inv')ui.paso=-1;render()});
+load();render();
+</script>
+</body>
+</html>
